@@ -45,7 +45,7 @@ public class JWTService {
     public String generateToken(Map<String, Object> extractClaims, UserDetails userDetails) {
         return Jwts
                 .builder() // return builder object to construct jwt
-                .setClaims(extractClaims)
+                .setClaims(extractClaims) // header part ()
                 .setSubject(userDetails.getUsername()) // should be the username/email so that we use the UserDetails to get the email and username
                 .setIssuedAt(new Date (System.currentTimeMillis())) // in date format that checks if the token is valid or not
                 .setExpiration(new Date(System.currentTimeMillis() + 600000) ) // you can set how long the token should be valid (10min)
