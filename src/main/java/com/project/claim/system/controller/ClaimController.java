@@ -13,14 +13,31 @@ import com.project.claim.system.repository.ClaimRepository;
 import com.project.claim.system.service.ClaimService;
 import com.project.claim.system.service.StaffService;
 import lombok.RequiredArgsConstructor;
+import org.apache.pdfbox.pdmodel.PDDocument;
+import org.apache.pdfbox.pdmodel.PDPage;
+import org.apache.pdfbox.pdmodel.PDPageContentStream;
+import org.apache.pdfbox.pdmodel.font.PDCIDFont;
+import org.apache.pdfbox.pdmodel.font.PDFont;
+import org.apache.pdfbox.pdmodel.font.PDType1Font;
 import org.springframework.core.io.ByteArrayResource;
 import org.springframework.core.io.Resource;
 import org.springframework.http.*;
+import org.springframework.security.core.parameters.P;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
+
+import java.awt.*;
+import java.io.BufferedReader;
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.io.StringReader;
+import java.math.BigInteger;
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
 import java.util.*;
+import java.util.List;
+
 
 @RestController
 @RequestMapping("api/claims")
@@ -60,6 +77,7 @@ public class ClaimController {
         Integer monthValue = parseMonth(month);
         UUID staffIdValue = parseStaffId(staffId);
         Status statusValue = parseStatus(status);
+
         List<ClaimDTO> claims = claimService.getClaimsByParams(yearValue, monthValue, staffIdValue, statusValue);
         return new ResponseEntity<>(claims, HttpStatus.OK);
     }
@@ -137,8 +155,200 @@ public class ClaimController {
         }
     }
 
+    @GetMapping("/generate-pdf")
+    public ResponseEntity<Resource> generatePDF(
+            @RequestParam(required = false) String year,
+            @RequestParam(required = false) String month,
+            @RequestParam(required = false) String staffId,
+            @RequestParam(required = false) String status) {
+        Integer yearValue = parseYear(year);
+        Integer monthValue = parseMonth(month);
+        UUID staffIdValue = parseStaffId(staffId);
+        Status statusValue = parseStatus(status);
+
+        List<ClaimDTO> claims = claimService.getClaimsByParams(yearValue, monthValue, staffIdValue, statusValue);
+
+        try (ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
+             PDDocument document = new PDDocument()) {
+            PDPage page = new PDPage();
+            document.addPage(page);
+
+            PDPageContentStream contentStream = new PDPageContentStream(document, page);
+
+            contentStream.beginText();
+            contentStream.setFont(PDType1Font.HELVETICA_BOLD, 10);
+            contentStream.newLineAtOffset(30, 750);
+            contentStream.showText("CLAIMS RECORD");
+            contentStream.endText();
+
+            float startY = 700f;
+            float lineHeight = 20f;
+
+            // Define custom widths for each cell
+            float[] cellWidths = {60f, 55f, 50f, 50f, 60f, 60f, 60f, 50f, 50f, 50f, 50f}; // Adjust as needed
+
+            drawTableHeader(contentStream, startY, cellWidths);
+            drawTableRows(contentStream, claims, startY - lineHeight, cellWidths, lineHeight);
+
+            contentStream.close();
+
+            document.save(outputStream);
+            document.close();
+
+            HttpHeaders headers = new HttpHeaders();
+            headers.setContentType(MediaType.APPLICATION_PDF);
+            headers.setContentDispositionFormData("filename", "ClaimRecords.pdf");
+
+            ByteArrayResource resource = new ByteArrayResource(outputStream.toByteArray());
+
+            return ResponseEntity.ok()
+                    .headers(headers)
+                    .contentLength(outputStream.size())
+                    .body(resource);
+        } catch (IOException e) {
+            e.printStackTrace();
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(null);
+        }
+    }
+
+    private void drawTableHeader(PDPageContentStream contentStream, float y, float[] cellWidths) throws IOException {
+        String[] headers = {"Claim ID", "Name", "Desc.", "Amount (RM)", "Receipt No.", "Receipt Date", "Status", "Staff ID", "Full Name", "Attc. ID", "Attc. Name"};
+        float x = 0f;
+        for (int i = 0; i < headers.length; i++) {
+            drawCell(contentStream, headers[i], x, y, cellWidths[i], 20f);
+            x += cellWidths[i];
+        }
+    }
+
+    private void drawTableRows(PDPageContentStream contentStream, List<ClaimDTO> claims, float startY, float[] cellWidths, float lineHeight) throws IOException {
+        for (ClaimDTO claim : claims) {
+            float rowHeight = calculateRowHeight(claim, cellWidths, lineHeight);
+            float x = 0f;
+            for (int i = 0; i < 11; i++) {
+                drawCell(contentStream, getCellValue(claim, i, cellWidths[i]), x, startY, cellWidths[i], rowHeight);
+                x += cellWidths[i];
+            }
+            startY -= rowHeight;
+        }
+    }
+
+    private float calculateRowHeight(ClaimDTO claim, float[] cellWidths, float lineHeight) throws IOException {
+        float maxHeight = 0;
+        for (int i = 0; i < 11; i++) {
+            List<String> lines = splitTextIntoLines(getCellValue(claim, i, cellWidths[i]), cellWidths[i] - 4);
+            float cellHeight = (lines.size() * lineHeight) + 4; // Add padding
+            if (cellHeight > maxHeight) {
+                maxHeight = cellHeight;
+            }
+        }
+        return maxHeight;
+    }
+
+    private void drawCell(PDPageContentStream contentStream, String text, float x, float y, float width, float height) throws IOException {
+        // Draw cell border
+        contentStream.setStrokingColor(Color.BLACK);
+        contentStream.setLineWidth(1f);
+        contentStream.addRect(x, y - height, width, height);
+        contentStream.stroke();
+
+        // Split text into lines
+        List<String> lines = splitTextIntoLines(text, width - 4);
+        float lineHeight = 12;
+
+        // Determine the maximum number of lines that can fit in the cell height
+        int maxLines = (int) Math.floor(height / lineHeight);
+
+        if (lines.size() > maxLines) {
+            // Trim the lines to fit the maximum allowed lines
+            lines = lines.subList(0, maxLines);
+            // Adjust the height to fit the trimmed lines
+            height = maxLines * lineHeight + 4;
+        }
+
+        // Set font and draw text
+        contentStream.setFont(PDType1Font.HELVETICA, 10);
+        contentStream.setLeading(lineHeight);
+        contentStream.beginText();
+        contentStream.newLineAtOffset(x + 2, y - 12); // Adjust offset for text alignment
+        for (String line : lines) {
+            contentStream.showText(line);
+            contentStream.newLineAtOffset(0, -lineHeight);
+        }
+        contentStream.endText();
+    }
+
+    private String getCellValue(ClaimDTO claim, int columnIndex, float cellWidth) throws IOException {
+        switch (columnIndex) {
+            case 0:
+                return wrapText(claim.getId().toString(), cellWidth / 70f); // Adjust the divisor as needed
+            case 1:
+                return String.valueOf(claim.getName());
+            case 2:
+                return claim.getDescription();
+            case 3:
+                return String.valueOf(claim.getAmount());
+            case 4:
+                return claim.getReceiptNo();
+            case 5:
+                return formatDate(claim.getReceiptDate());
+            case 6:
+                return claim.getStatus().toString();
+            case 7:
+                return wrapText(claim.getStaffId().toString(), cellWidth);
+            case 8:
+                return claim.getFullName();
+            case 9:
+                return wrapText(claim.getAttachmentId().toString(), cellWidth);
+            case 10:
+                return claim.getAttachmentName();
+            default:
+                return "";
+        }
+    }
 
 
+    private String wrapText(String text, float maxWidth) {
+        // Split the text into substrings of length 4 to fit within the cell width
+        List<String> lines = new ArrayList<>();
+        int length = text.length();
+        for (int i = 0; i < length; i += 10) {
+            int endIndex = Math.min(i + 10, length);
+            lines.add(text.substring(i, endIndex));
+        }
+        return String.join("\n", lines);
+    }
+
+
+
+
+    private List<String> splitTextIntoLines(String text, float maxWidth) throws IOException {
+        List<String> lines = new ArrayList<>();
+        try (StringReader reader = new StringReader(text)) {
+            try (BufferedReader br = new BufferedReader(reader)) {
+                String line;
+                StringBuilder builder = new StringBuilder();
+                while ((line = br.readLine()) != null) {
+                    for (String word : line.split("\\s")) {
+                        float width = PDType1Font.HELVETICA.getStringWidth(builder.toString() + word) / 1000 * 10;
+                        if (width > maxWidth) {
+                            lines.add(builder.toString().trim());
+                            builder.setLength(0); // Clear the StringBuilder
+                        }
+                        builder.append(word).append(" ");
+                    }
+                    lines.add(builder.toString().trim());
+                    builder.setLength(0); // Clear the StringBuilder
+                }
+            }
+        }
+        return lines;
+    }
+
+    // Method to format date
+    private String formatDate(Date date) {
+        DateFormat dateFormat = new SimpleDateFormat("dd-MM-yyyy");
+        return (date != null) ? dateFormat.format(date) : "";
+    }
 
     private Integer parseYear(String year) {
         if (year == null || year.isEmpty() || "all".equalsIgnoreCase(year)) {
@@ -175,5 +385,6 @@ public class ClaimController {
             return null;
         }
     }
-}
 
+
+}
