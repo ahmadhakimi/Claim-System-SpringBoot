@@ -7,7 +7,9 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import org.hibernate.annotations.JdbcTypeCode;
 
+import java.sql.Types;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 
@@ -22,7 +24,10 @@ public class TokenEntity {
 
     @Id
     @GeneratedValue
+
+    @JdbcTypeCode(Types.VARCHAR)
     private Integer id;
+
     private String token;
     @Enumerated(EnumType.STRING)
     private TokenType type;

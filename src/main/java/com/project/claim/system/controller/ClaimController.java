@@ -21,22 +21,16 @@ import org.apache.pdfbox.pdmodel.font.PDCIDFont;
 import org.apache.pdfbox.pdmodel.font.PDFont;
 import org.apache.pdfbox.pdmodel.font.PDType1Font;
 import org.apache.pdfbox.pdmodel.graphics.image.PDImageXObject;
+import org.apache.pdfbox.pdmodel.graphics.state.PDExtendedGraphicsState;
 import org.springframework.core.io.ByteArrayResource;
 import org.springframework.core.io.Resource;
 import org.springframework.http.*;
-import org.springframework.security.core.parameters.P;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 
-import java.awt.*;
-import java.io.BufferedReader;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
-import java.io.StringReader;
-import java.math.BigInteger;
-import java.text.DateFormat;
-import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.List;
 
@@ -171,70 +165,8 @@ public class ClaimController {
 
         List<ClaimDTO> claims = claimService.getClaimsByParams(yearValue, monthValue, staffIdValue, statusValue);
 
-        try (ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
-             PDDocument document = new PDDocument()) {
-            PDPage page = new PDPage();
-            document.addPage(page);
-
-            PDPageContentStream contentStream = new PDPageContentStream(document, page);
-
-            contentStream.beginText();
-            contentStream.setFont(PDType1Font.HELVETICA_BOLD, 10);
-            contentStream.newLineAtOffset(30, 750);
-            contentStream.showText("CLAIMS RECORD");
-            contentStream.endText();
-
-            float startY = 745f;
-            float lineHeight = 20f;
-
-            // Define custom widths for each cell
-            float[] cellWidths = {60f, 55f, 50f, 45f, 55f, 58f, 60f, 60f, 60f, 60f, 50f}; // Adjust as needed
-
-            pdfGeneratorService.drawTableHeader(contentStream, startY, cellWidths);
-            pdfGeneratorService.drawTableRows(contentStream, claims, startY - lineHeight, cellWidths, lineHeight);
-
-            contentStream.close();
-
-            // Add background image to each page
-            PDImageXObject backgroundImage = PDImageXObject.createFromFile("C:/Users/USER/Desktop/SPRINGBOOT/claim system/img/rbtsb-logo.jpg", document);
-
-            float bgWidth = 125;
-            float bgHeight = 75;
-
-            for (PDPage currentPage : document.getPages()) {
-                PDPageContentStream currentPageContentStream = new PDPageContentStream(document, currentPage, PDPageContentStream.AppendMode.APPEND, true, true);
-
-                // Add the background image
-                currentPageContentStream.drawImage(backgroundImage, 10, 10, bgWidth, bgHeight);
-
-                // Draw text and tables on top of the background image as you were doing before
-
-                currentPageContentStream.close();
-            }
-
-            document.save(outputStream);
-            document.close();
-
-            HttpHeaders headers = new HttpHeaders();
-            headers.setContentType(MediaType.APPLICATION_PDF);
-            headers.setContentDispositionFormData("filename", "ClaimRecords.pdf");
-
-            ByteArrayResource resource = new ByteArrayResource(outputStream.toByteArray());
-
-            return ResponseEntity.ok()
-                    .headers(headers)
-                    .contentLength(outputStream.size())
-                    .body(resource);
-        } catch (IOException e) {
-            e.printStackTrace();
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(null);
-        }
+        return pdfGeneratorService.generateClaimsPDF(claims);
     }
-
-
-
-    // Method to format date
-
 
     private Integer parseYear(String year) {
         if (year == null || year.isEmpty() || "all".equalsIgnoreCase(year)) {

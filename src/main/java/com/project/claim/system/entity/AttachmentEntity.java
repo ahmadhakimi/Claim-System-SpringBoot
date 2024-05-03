@@ -5,7 +5,9 @@ package com.project.claim.system.entity;
 import jakarta.persistence.*;
 import lombok.Data;
 import org.hibernate.annotations.Fetch;
+import org.hibernate.annotations.JdbcTypeCode;
 
+import java.sql.Types;
 import java.util.UUID;
 
 @Entity
@@ -17,7 +19,6 @@ public class AttachmentEntity {
 
     @Id
     @GeneratedValue
-    @Column(nullable = false, unique = true)
     private UUID id;
     private String name;
 

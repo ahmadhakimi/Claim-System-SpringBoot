@@ -6,13 +6,13 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.project.claim.system.enumeration.Name;
 import com.project.claim.system.enumeration.Status;
 import jakarta.persistence.*;
+import jakarta.persistence.CascadeType;
+import jakarta.persistence.Table;
 import lombok.*;
-import org.hibernate.annotations.CreationTimestamp;
-import org.hibernate.annotations.Fetch;
-import org.hibernate.annotations.FetchMode;
-import org.hibernate.annotations.UpdateTimestamp;
+import org.hibernate.annotations.*;
 
 import java.math.BigDecimal;
+import java.sql.Types;
 import java.util.Date;
 import java.util.UUID;
 

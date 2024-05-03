@@ -164,21 +164,6 @@ public class ClaimService {
         return updatedClaimDTO;
     }
 
-    //DELETE ATTACHMENT AND CLAIM SERVICE
-//    @Transactional
-//    public boolean deleteClaimWithAttachment(UUID id) {
-//        Optional<ClaimEntity> optionalClaim = claimRepository.findById(id);
-//        if (optionalClaim.isPresent()) {
-//            ClaimEntity claimEntity = optionalClaim.get();
-//            UUID attachmentId = claimEntity.getAttachmentId();
-//            if (attachmentId != null) {
-//                attachmentRepository.deleteById(attachmentId);
-//            }
-//            claimRepository.delete(claimEntity);
-//            return true;
-//        }
-//        return false;
-//    }
 
 
 //make details to appear in request

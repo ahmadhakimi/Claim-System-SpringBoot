@@ -8,12 +8,14 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.JdbcTypeCode;
 import org.hibernate.annotations.UpdateTimestamp;
 import org.springframework.boot.autoconfigure.security.servlet.UserDetailsServiceAutoConfiguration;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
+import java.sql.Types;
 import java.util.Collection;
 import java.util.Date;
 import java.util.List;
@@ -29,7 +31,6 @@ public class StaffEntity implements UserDetails {
 
     @Id
     @GeneratedValue
-    @Column(columnDefinition = "BINARY(16)")
     private UUID id;
 
     private String fullName;
