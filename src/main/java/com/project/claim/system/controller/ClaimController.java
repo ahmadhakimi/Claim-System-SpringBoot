@@ -2,27 +2,18 @@ package com.project.claim.system.controller;
 
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.project.claim.system.dto.AttachmentDTO;
+
 import com.project.claim.system.dto.ClaimDTO;
 import com.project.claim.system.entity.AttachmentEntity;
 import com.project.claim.system.entity.ClaimEntity;
 import com.project.claim.system.enumeration.Status;
-import com.project.claim.system.exception.ResourceNotFoundException;
+
 import com.project.claim.system.repository.AttachmentRepository;
 import com.project.claim.system.repository.ClaimRepository;
 import com.project.claim.system.service.ClaimService;
 import com.project.claim.system.service.PDFGeneratorService;
 import com.project.claim.system.service.StaffService;
 import lombok.RequiredArgsConstructor;
-import org.apache.pdfbox.pdmodel.PDDocument;
-import org.apache.pdfbox.pdmodel.PDPage;
-import org.apache.pdfbox.pdmodel.PDPageContentStream;
-import org.apache.pdfbox.pdmodel.font.PDCIDFont;
-import org.apache.pdfbox.pdmodel.font.PDFont;
-import org.apache.pdfbox.pdmodel.font.PDType1Font;
-import org.apache.pdfbox.pdmodel.graphics.image.PDImageXObject;
-import org.apache.pdfbox.pdmodel.graphics.state.PDExtendedGraphicsState;
-import org.springframework.core.io.ByteArrayResource;
 import org.springframework.core.io.Resource;
 import org.springframework.http.*;
 import org.springframework.web.bind.annotation.*;
@@ -70,6 +61,12 @@ public class ClaimController {
             @RequestParam(required = false) String month,
             @RequestParam(required = false) String staffId,
             @RequestParam(required = false) String status) {
+
+        if (year == null || year.isEmpty()) {
+            year = "2024";
+        }
+
+
         Integer yearValue = parseYear(year);
         Integer monthValue = parseMonth(month);
         UUID staffIdValue = parseStaffId(staffId);
@@ -158,12 +155,18 @@ public class ClaimController {
             @RequestParam(required = false) String month,
             @RequestParam(required = false) String staffId,
             @RequestParam(required = false) String status) {
+        // Check if year is null or empty, then set it to "2024"
+        if (year == null || year.isEmpty()) {
+            year = "2024";
+        }
+
         Integer yearValue = parseYear(year);
         Integer monthValue = parseMonth(month);
         UUID staffIdValue = parseStaffId(staffId);
         Status statusValue = parseStatus(status);
 
         List<ClaimDTO> claims = claimService.getClaimsByParams(yearValue, monthValue, staffIdValue, statusValue);
+
 
         return pdfGeneratorService.generateClaimsPDF(claims);
     }
@@ -203,8 +206,6 @@ public class ClaimController {
             return null;
         }
     }
-
-
 
 
 }

@@ -1,10 +1,12 @@
 package com.project.claim.system.service;
 
+import com.itextpdf.text.pdf.parser.PdfImageObject;
 import com.project.claim.system.dto.ClaimDTO;
 import org.apache.pdfbox.pdmodel.PDDocument;
 import org.apache.pdfbox.pdmodel.PDPage;
 import org.apache.pdfbox.pdmodel.PDPageContentStream;
 import org.apache.pdfbox.pdmodel.font.PDType1Font;
+import org.apache.pdfbox.pdmodel.graphics.image.PDImageXObject;
 import org.springframework.core.io.ByteArrayResource;
 import org.springframework.core.io.Resource;
 import org.springframework.http.HttpHeaders;
@@ -26,35 +28,39 @@ public class PDFGeneratorService {
     public ResponseEntity<Resource> generateClaimsPDF(List<ClaimDTO> claims) {
         try (ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
              PDDocument document = new PDDocument()) {
+
+            PDImageXObject backgroundImage = PDImageXObject.createFromFile("C:/Users/USER/Desktop/SPRINGBOOT/claim system/img/rbtsb-logo.jpg", document);
+            float bgWidth = 125;
+            float bgHeight = 55;
+
             PDPage page = new PDPage();
             document.addPage(page);
 
             PDPageContentStream contentStream = new PDPageContentStream(document, page);
 
+            // Add background image to the first page only
+            contentStream.drawImage(backgroundImage, 10, 10, bgWidth, bgHeight);
+
             contentStream.beginText();
-            contentStream.setFont(PDType1Font.HELVETICA_BOLD, 10);
-            contentStream.newLineAtOffset(30, 750);
+            contentStream.newLineAtOffset(225,730);
+            contentStream.setFont(PDType1Font.HELVETICA_BOLD, 16);
+            contentStream.setLeading(15);
             contentStream.showText("CLAIMS RECORD");
+            contentStream.newLine();
             contentStream.endText();
 
-            float startY = 725f; // Adjust the startY position for the table
-            float lineHeight = 20f;
-
-            // Define custom widths for each cell
-            float[] cellWidths = {100f, 80f, 80f, 90f, 90f, 100f}; // Adjust as needed
-
             // Draw table header
-            drawTableHeader(contentStream, startY, cellWidths);
-            startY -= lineHeight; // Move startY position for drawing table rows
+            float tableHeaderY = 700; // Adjust the table header position
+            drawTableHeader(contentStream, tableHeaderY, new float[]{100f, 80f, 80f, 90f, 90f, 100f});
 
-            // Draw table rows
+            // Draw table rows for each claim
+            float startY = tableHeaderY - 20; // Start just below the table header
+            float lineHeight = 20f;
             for (ClaimDTO claim : claims) {
-                startY = drawTableRow(contentStream, claim, startY, cellWidths, lineHeight);
+                startY = drawTableRow(contentStream, claim, startY, new float[]{100f, 80f, 80f, 90f, 90f, 100f}, lineHeight);
             }
 
             contentStream.close();
-
-            // Add background image to each page (if needed)
 
             document.save(outputStream);
             document.close();
@@ -75,13 +81,14 @@ public class PDFGeneratorService {
         }
     }
 
+
+
     private float drawTableRow(PDPageContentStream contentStream, ClaimDTO claim, float startY, float[] cellWidths, float lineHeight) throws IOException {
         float currentY = startY;
-        float startX = 30; // Starting X position for the first cell
+        float startX = 30;
 
-        // Draw border lines for each row
         contentStream.moveTo(startX, currentY);
-        contentStream.lineTo(startX + calculateTotalWidth(cellWidths), currentY); // Top horizontal line
+        contentStream.lineTo(startX + calculateTotalWidth(cellWidths), currentY);
         contentStream.stroke();
 
         // Draw each cell in the row
@@ -122,16 +129,16 @@ public class PDFGeneratorService {
 
     private void drawTableHeader(PDPageContentStream contentStream, float startY, float[] cellWidths) throws IOException {
         float currentY = startY;
-        float startX = 30; // Starting X position for the first cell
+        float startX = 30;
 
-        // Draw border lines for the header row
+
         contentStream.moveTo(startX, currentY);
         contentStream.lineTo(startX + calculateTotalWidth(cellWidths), currentY); // Top horizontal line
         contentStream.stroke();
 
         // Draw each cell in the header row
         for (int i = 0; i < cellWidths.length; i++) {
-            // Draw border lines for each cell
+
             contentStream.moveTo(startX, currentY);
             contentStream.lineTo(startX, currentY - 20); // Left vertical line
             contentStream.moveTo(startX, currentY - 20);
@@ -202,4 +209,6 @@ public class PDFGeneratorService {
                 return "";
         }
     }
+
+
 }
