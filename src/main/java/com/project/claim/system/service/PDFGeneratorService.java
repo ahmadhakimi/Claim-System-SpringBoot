@@ -77,34 +77,80 @@ public class PDFGeneratorService {
 
     private float drawTableRow(PDPageContentStream contentStream, ClaimDTO claim, float startY, float[] cellWidths, float lineHeight) throws IOException {
         float currentY = startY;
-        float currentX = 30; // Starting X position for the first cell
+        float startX = 30; // Starting X position for the first cell
+
+        // Draw border lines for each row
+        contentStream.moveTo(startX, currentY);
+        contentStream.lineTo(startX + calculateTotalWidth(cellWidths), currentY); // Top horizontal line
+        contentStream.stroke();
+
+        // Draw each cell in the row
         for (int i = 0; i < cellWidths.length; i++) {
             String cellValue = getCellValue(claim, i, cellWidths[i]);
+
+            // Draw borderlines for each cell
+            contentStream.moveTo(startX, currentY);
+            contentStream.lineTo(startX, currentY - lineHeight); // Left vertical line
+            contentStream.moveTo(startX, currentY - lineHeight);
+            contentStream.lineTo(startX + cellWidths[i], currentY - lineHeight); // Bottom horizontal line
+            contentStream.moveTo(startX + cellWidths[i], currentY - lineHeight);
+            contentStream.lineTo(startX + cellWidths[i], currentY); // Right vertical line
+            contentStream.stroke();
+
+            // Draw text in the cell
             contentStream.beginText();
             contentStream.setFont(PDType1Font.HELVETICA, 10);
-            contentStream.newLineAtOffset(currentX, currentY);
+            contentStream.newLineAtOffset(startX + 2, currentY - 12); // Adjust for text positioning
             contentStream.showText(cellValue);
             contentStream.endText();
-            currentX += cellWidths[i]; // Move X position for the next cell
+
+            startX += cellWidths[i]; // Move to the next cell's starting X position
         }
+
         return startY - lineHeight; // Return updated startY position for the next row
     }
 
+    private float calculateTotalWidth(float[] cellWidths) {
+        float totalWidth = 0;
+        for (float width : cellWidths) {
+            totalWidth += width;
+        }
+        return totalWidth;
+    }
+
+
 
     private void drawTableHeader(PDPageContentStream contentStream, float startY, float[] cellWidths) throws IOException {
-        float currentX = 30;
         float currentY = startY;
+        float startX = 30; // Starting X position for the first cell
 
-        // Draw table header cells
+        // Draw border lines for the header row
+        contentStream.moveTo(startX, currentY);
+        contentStream.lineTo(startX + calculateTotalWidth(cellWidths), currentY); // Top horizontal line
+        contentStream.stroke();
+
+        // Draw each cell in the header row
         for (int i = 0; i < cellWidths.length; i++) {
+            // Draw border lines for each cell
+            contentStream.moveTo(startX, currentY);
+            contentStream.lineTo(startX, currentY - 20); // Left vertical line
+            contentStream.moveTo(startX, currentY - 20);
+            contentStream.lineTo(startX + cellWidths[i], currentY - 20); // Bottom horizontal line
+            contentStream.moveTo(startX + cellWidths[i], currentY - 20);
+            contentStream.lineTo(startX + cellWidths[i], currentY); // Right vertical line
+            contentStream.stroke();
+
+            // Draw text in the cell
             contentStream.beginText();
             contentStream.setFont(PDType1Font.HELVETICA_BOLD, 10);
-            contentStream.newLineAtOffset(currentX, currentY);
-            contentStream.showText(getHeaderName(i)); // Adjust to get appropriate header name
+            contentStream.newLineAtOffset(startX + 2, currentY - 12); // Adjust for text positioning
+            contentStream.showText(getHeaderName(i)); // Use the method to get header cell values
             contentStream.endText();
-            currentX += cellWidths[i];
+
+            startX += cellWidths[i]; // Move to the next cell's starting X position
         }
     }
+
 
     private String getCellValue(ClaimDTO claim, int columnIndex, float cellWidth) {
         switch (columnIndex) {
