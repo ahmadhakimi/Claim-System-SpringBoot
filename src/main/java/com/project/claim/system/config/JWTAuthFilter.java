@@ -73,9 +73,4 @@ public class JWTAuthFilter extends OncePerRequestFilter {
         filterChain.doFilter(request, response);
     }
 
-//    private void sendUnauthorizedResponse (HttpServletResponse response, String message) {
-//        response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
-//        response.setContentType("application/json");
-//        response.getWriter().write("{\"message\": \"" + message + "\"}");
-//    }
 }

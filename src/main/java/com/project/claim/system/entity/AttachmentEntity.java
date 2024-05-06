@@ -4,10 +4,13 @@ package com.project.claim.system.entity;
 
 import jakarta.persistence.*;
 import lombok.Data;
+import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.Fetch;
 import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.annotations.UpdateTimestamp;
 
 import java.sql.Types;
+import java.util.Date;
 import java.util.UUID;
 
 @Entity
@@ -26,7 +29,14 @@ public class AttachmentEntity {
     private byte[] data;
     private String type;
 
+    @CreationTimestamp
+    private Date createdAt;
+
+    @UpdateTimestamp
+    private Date updatedAt;
+
     @OneToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "claimId")
     private ClaimEntity claim;
+
 }

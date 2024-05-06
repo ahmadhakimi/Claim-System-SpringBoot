@@ -48,7 +48,7 @@ public class JWTService {
                 .setClaims(extractClaims) // header part ()
                 .setSubject(userDetails.getUsername()) // should be the username/email so that we use the UserDetails to get the email and username
                 .setIssuedAt(new Date (System.currentTimeMillis())) // in date format that checks if the token is valid or not
-                .setExpiration(new Date(System.currentTimeMillis() + 600000) ) // you can set how long the token should be valid (10min)
+                .setExpiration(new Date(System.currentTimeMillis() + 60000 * 30 ) ) // you can set how long the token should be valid for
                 .signWith(getSignInKey(), SignatureAlgorithm.HS256) //decide which key we want to sign the token, we already created the getSignInKey()
                 .compact(); // this will generate & return the token
     }

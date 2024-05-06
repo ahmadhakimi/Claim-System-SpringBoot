@@ -62,9 +62,6 @@ public class ClaimController {
             @RequestParam(required = false) String staffId,
             @RequestParam(required = false) String status) {
 
-        if (year == null || year.isEmpty()) {
-            year = "2024";
-        }
 
 
         Integer yearValue = parseYear(year);
@@ -155,10 +152,7 @@ public class ClaimController {
             @RequestParam(required = false) String month,
             @RequestParam(required = false) String staffId,
             @RequestParam(required = false) String status) {
-        // Check if year is null or empty, then set it to "2024"
-        if (year == null || year.isEmpty()) {
-            year = "2024";
-        }
+
 
         Integer yearValue = parseYear(year);
         Integer monthValue = parseMonth(month);

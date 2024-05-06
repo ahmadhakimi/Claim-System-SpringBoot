@@ -18,6 +18,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
+import javax.swing.text.html.Option;
 import java.io.IOException;
 import java.util.*;
 import java.util.function.Function;
@@ -111,12 +112,24 @@ public class ClaimService {
     }
 
     // EDIT CLAIM AND UPDATE ATTACHMENT
+    @Transactional
     public ClaimDTO updateClaimWithAttachment(UUID id, ClaimDTO updatedClaimDTO, MultipartFile attachmentFile) {
         // Check if the claim with the given ID exists
         ClaimEntity existingClaimEntity = claimRepository.findById(id).orElse(null);
         if (existingClaimEntity == null) {
             return null; // Claim not found
         }
+
+        // Update the existing claim entity with the values from updatedClaimDTO
+        existingClaimEntity.setName(updatedClaimDTO.getName());
+        existingClaimEntity.setDescription(updatedClaimDTO.getDescription());
+        existingClaimEntity.setAmount(updatedClaimDTO.getAmount());
+        existingClaimEntity.setReceiptNo(updatedClaimDTO.getReceiptNo());
+        existingClaimEntity.setReceiptDate(updatedClaimDTO.getReceiptDate());
+        existingClaimEntity.setStatus(updatedClaimDTO.getStatus());
+
+        // Set the updatedAt timestamp to the current date and time
+        existingClaimEntity.setUpdatedAt(new Date());
 
         // Fetch staff details from the database based on the provided staffId in the updatedClaimDTO
         StaffEntity staffEntity = staffRepository.findById(updatedClaimDTO.getStaffId()).orElse(null);
@@ -125,26 +138,33 @@ public class ClaimService {
             return null;
         }
 
-        // Convert DTO to entity
-        ClaimEntity updatedClaimEntity = convertToEntity(updatedClaimDTO);
-        updatedClaimEntity.setId(id);
-        updatedClaimEntity.setStaff(staffEntity);
+        // Set the staff for the existing claim entity
+        existingClaimEntity.setStaff(staffEntity);
 
         // Process attachment if available
         if (attachmentFile != null && !attachmentFile.isEmpty()) {
             try {
-                // Create attachment entity
-                AttachmentEntity attachmentEntity = new AttachmentEntity();
-                attachmentEntity.setName(attachmentFile.getOriginalFilename());
-                attachmentEntity.setData(attachmentFile.getBytes());
-                attachmentEntity.setType(attachmentFile.getContentType());
-                attachmentEntity.setClaim(updatedClaimEntity);
-                // Save attachment entity
-                attachmentRepository.save(attachmentEntity);
-                // Update attachment details in DTO
-                updatedClaimDTO.setAttachmentId(attachmentEntity.getId());
-                updatedClaimDTO.setAttachmentName(attachmentEntity.getName());
-                updatedClaimDTO.setAttachmentType(attachmentEntity.getType());
+                // Fetch existing attachment entity
+                Optional<AttachmentEntity> optionalAttachmentEntity = attachmentRepository.findByClaimId(id);
+                if (optionalAttachmentEntity.isPresent()) {
+                    AttachmentEntity existingAttachmentEntity = optionalAttachmentEntity.get();
+
+                    // Update attachment details
+                    existingAttachmentEntity.setName(attachmentFile.getOriginalFilename());
+                    existingAttachmentEntity.setData(attachmentFile.getBytes());
+                    existingAttachmentEntity.setType(attachmentFile.getContentType());
+
+                    // Set the updatedAt timestamp to the current date and time
+                    existingAttachmentEntity.setUpdatedAt(new Date());
+
+                    // Save the updated attachment entity
+                    attachmentRepository.save(existingAttachmentEntity);
+
+                    // Update attachment details in DTO
+                    updatedClaimDTO.setAttachmentId(existingAttachmentEntity.getId());
+                    updatedClaimDTO.setAttachmentName(existingAttachmentEntity.getName());
+                    updatedClaimDTO.setAttachmentType(existingAttachmentEntity.getType());
+                }
             } catch (IOException e) {
                 // Handle IOException appropriately
                 e.printStackTrace();
@@ -152,7 +172,7 @@ public class ClaimService {
         }
 
         // Save the updated claim entity
-        ClaimEntity savedUpdatedClaimEntity = claimRepository.save(updatedClaimEntity);
+        ClaimEntity savedUpdatedClaimEntity = claimRepository.save(existingClaimEntity);
 
         // Set staff details in DTO
         updatedClaimDTO.setStaffId(staffEntity.getId());
@@ -169,7 +189,15 @@ public class ClaimService {
 //make details to appear in request
     private ClaimEntity convertToEntity(ClaimDTO claimDTO) {
         ClaimEntity claimEntity = new ClaimEntity();
-//        claimEntity.setId(claimDTO.getId());
+
+        if(claimDTO.getId()!= null) {
+            Optional<ClaimEntity> optionalClaimEntity = claimRepository.findById(claimDTO.getId());
+            if(optionalClaimEntity.isPresent()) {
+                ClaimEntity existingClaimEntity = optionalClaimEntity.get();
+                claimEntity.setCreatedAt(existingClaimEntity.getCreatedAt());
+            }
+        }
+
         claimEntity.setName(claimDTO.getName());
         claimEntity.setDescription(claimDTO.getDescription());
         claimEntity.setAmount(claimDTO.getAmount());

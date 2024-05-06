@@ -33,6 +33,7 @@ public class PDFGeneratorService {
             float bgWidth = 125;
             float bgHeight = 55;
 
+
             PDPage page = new PDPage();
             document.addPage(page);
 
@@ -47,6 +48,16 @@ public class PDFGeneratorService {
             contentStream.setLeading(15);
             contentStream.showText("CLAIMS RECORD");
             contentStream.newLine();
+            contentStream.endText();
+
+            contentStream.beginText();
+            contentStream.newLineAtOffset(10,115);
+            contentStream.setFont(PDType1Font.COURIER, 10);
+            contentStream.showText("Reliable Business Technologies Sdn. Bhd.");
+            contentStream.newLine();
+            contentStream.showText("8-16-1 Menara Mutiara Bangsar, Bangsar, 59100 Kuala Lumpur");
+            contentStream.newLine();
+            contentStream.showText("Mobile: 017-3636903    Tel: 03 2283 1353");
             contentStream.endText();
 
             // Draw table header
