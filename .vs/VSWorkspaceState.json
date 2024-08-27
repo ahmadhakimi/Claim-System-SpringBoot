@@ -1,0 +1,15 @@
+{
+  "ExpandedNodes": [
+    "",
+    "\\src",
+    "\\src\\main",
+    "\\src\\main\\java",
+    "\\src\\main\\java\\com",
+    "\\src\\main\\java\\com\\project",
+    "\\src\\main\\java\\com\\project\\claim",
+    "\\src\\main\\java\\com\\project\\claim\\system",
+    "\\src\\main\\java\\com\\project\\claim\\system\\controller"
+  ],
+  "SelectedNode": "\\src\\main\\java\\com\\project\\claim\\system\\controller\\StaffController.java",
+  "PreviewInSolutionExplorer": false
+}

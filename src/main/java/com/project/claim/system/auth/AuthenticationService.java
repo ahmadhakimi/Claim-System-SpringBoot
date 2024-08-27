@@ -113,10 +113,9 @@ public class AuthenticationService {
         staffRepository.save(user);
     }
 
-//forgot-password services
+    //forgot-password services
     public void processForgotPassword(String userEmail) {
         otpService.generateAndSendOTP(userEmail);
-
     }
 
     public void processVerifyOTP(String otp) {

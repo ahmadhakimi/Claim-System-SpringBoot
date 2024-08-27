@@ -81,7 +81,6 @@
 			<artifactId>bcpkix-jdk18on</artifactId>
 			<version>1.76</version>
 		</dependency>
-
 		<dependency>
 			<groupId>io.jsonwebtoken</groupId>
 			<artifactId>jjwt-impl</artifactId>

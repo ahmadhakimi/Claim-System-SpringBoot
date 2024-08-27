@@ -1,3 +1,4 @@
+//JWTService.java
 package com.project.claim.system.service;
 
 import io.jsonwebtoken.Claims;
@@ -5,7 +6,6 @@ import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
 import io.jsonwebtoken.io.Decoders;
 import io.jsonwebtoken.security.Keys;
-import org.modelmapper.internal.bytebuddy.asm.Advice;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
 
@@ -48,7 +48,7 @@ public class JWTService {
                 .setClaims(extractClaims) // header part ()
                 .setSubject(userDetails.getUsername()) // should be the username/email so that we use the UserDetails to get the email and username
                 .setIssuedAt(new Date (System.currentTimeMillis())) // in date format that checks if the token is valid or not
-                .setExpiration(new Date(System.currentTimeMillis() + 60000 * 30 ) ) // you can set how long the token should be valid for
+                .setExpiration(new Date(System.currentTimeMillis() + 60000 * 10 * 3 ) ) // you can set how long the token should be valid for
                 .signWith(getSignInKey(), SignatureAlgorithm.HS256) //decide which key we want to sign the token, we already created the getSignInKey()
                 .compact(); // this will generate & return the token
     }
@@ -60,7 +60,7 @@ public class JWTService {
     public boolean isTokenValid(String token, UserDetails userDetails) {
         final String username = extractUsername(token);
         return username.equals(userDetails.getUsername()) && !isTokenExpired(token);
-        //return username of the valid userDetails and non expired token
+
     }
 
     private boolean isTokenExpired(String token) {
@@ -75,6 +75,5 @@ public class JWTService {
         byte[] keyBytes = Decoders.BASE64.decode(SECRET_KEY);
         return Keys.hmacShaKeyFor(keyBytes);
     }
-
 
 }
