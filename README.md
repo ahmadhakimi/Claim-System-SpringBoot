@@ -43,11 +43,14 @@ for building and running the application you will need the:
 
 ### Usage 📖
 
-1. **Submit a Claim:**
-   - Navigate to `http://localhost:8080/submit-claim` and fill out the form.
+1. **Create new staffs:**
+   - Navigate to `http://localhost:8080/api/staffs/create` and fill the request body in JSON such as:
+     - fullName, email, password, role, createdBy, and updatedBy.
+   ![POSTMAN create new staff](https://github.com/user-attachments/assets/d6cf2ca6-f6e8-4414-87d4-60c4f95d5416)
 
-2. **Track a Claim:**
-   - Go to `http://localhost:8080/track-claim` and enter your claim ID.
+
+2. **Submit a Claim:**
+   - Go to `http://localhost:8080/api/claims` and go to form data 
 
 3. **Manage Claims:**
    - Admins can access `http://localhost:8080/admin` to view and manage claims.
