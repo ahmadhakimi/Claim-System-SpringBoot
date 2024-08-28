@@ -1,4 +1,8 @@
 # **Claim Request System** 💻
+
+![High-level architecture design](https://github.com/user-attachments/assets/328927e2-141c-467f-a080-a6ab2cef24e6)
+
+
 This project's purpose to help staff to make claim requests via an online application.
 
 ## **Features** 🌟
@@ -41,16 +45,12 @@ for building and running the application you will need the:
 - Make sure the MySQL is running
 - update the `application.properties` file with your database details such as database uri, username, password, etc.
 
-### Usage 📖
-
-1. **Create new staffs:**
-   - Navigate to `http://localhost:8080/api/staffs/create` and fill the request body in JSON such as:
-     - fullName, email, password, role, createdBy, and updatedBy.
-   ![POSTMAN create new staff](https://github.com/user-attachments/assets/d6cf2ca6-f6e8-4414-87d4-60c4f95d5416)
-
-
-2. **Submit a Claim:**
-   - Go to `http://localhost:8080/api/claims` and go to form data 
-
-3. **Manage Claims:**
-   - Admins can access `http://localhost:8080/admin` to view and manage claims.
+## Functionality
+1. create staff, view staff by ID, staffs list, update staff by ID, and delete staff by ID
+2. CRUD claims, list of claims, download claim's attachment
+3. Register new staff with auth
+4. login staff using auth
+5. update password and forget password
+6. admin creates a new user
+7. generate claims record as PDF
+8. logout 
